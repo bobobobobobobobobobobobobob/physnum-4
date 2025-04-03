@@ -10,6 +10,7 @@
 using namespace std;
 
 const double PI=3.1415926535897932384626433832795028841971e0;
+constexpr double epsilon0= 8.8541878e-12;
 // Résolution d'un système d'équations linéaires par élimination de
 // Gauss-Jordan:
 template<class T>
@@ -39,15 +40,20 @@ solve(const vector<T>& diag,
 }
 
 //TODO build the epsilon function
-double epsilon()
-{
-    return 0.0;
+double epsilon(const double& r, const double& r1, const double& epsilon_a, const double& epsilon_b) {
+    if (r < r1){return epsilon_a ;}
+    else{return epsilon_b ;}
 }
 
 //TODO build the rho_epsilon function (rho_lib / epsilon_0)
-double rho_epsilon()
+double rho_epsilon(const double& r,const double& r1,const double& rho0,const bool& uniform_rho_case)
 {
-    return 0.0;
+    if (uniform_rho_case) {
+        return rho0 / epsilon0;
+    } else {
+        if ((r < r1)){return  rho0 * sin(PI * r / r1);}
+        else{return 0.0;}
+    }
 }
 
 int
@@ -58,7 +64,7 @@ main(int argc, char* argv[])
     // USAGE: Exercise4 [configuration-file] [<settings-to-overwrite> ...]
 
     // Read the default input
-    string inputPath = "configuration.in.example";
+    string inputPath = "configuration.in";
     // Optionally override configuration file.
     if (argc > 1)
         inputPath = argv[1];
