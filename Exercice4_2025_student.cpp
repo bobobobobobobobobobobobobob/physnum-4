@@ -113,12 +113,22 @@ main(int argc, char* argv[])
     vector<double> r(pointCount);
 
     //TODO build the nodes vector r
+    for (int i = 0; i <= N1; ++i)
+        r[i] = i * h1; // De 0 à r1
+
+    for (int i = 0; i < N2; ++i)
+        r[N1 + 1 + i] = r1 + (i + 1) * h2; // De r1 à R
     
     // Arrays initialization
     vector<double> h(pointCount-1); 	// Distance between grid points
     vector<double> midPoint(pointCount-1);  // Midpoint of each grid element
         
     // TODO build the h vector and midpoint vector
+    for (int i = 0; i < pointCount - 1; ++i) 
+    {
+    h[i] = r[i + 1] - r[i];
+    midPoint[i] = (r[i] + r[i + 1]) / 2.0;
+    }
 
     // Construct the matrix and right-hand side
     vector<double> diagonal(pointCount, 1.0);  // Diagonal
@@ -131,12 +141,25 @@ main(int argc, char* argv[])
         
                    
         // TODO build the vectors diagonal, lower, upper, rhs
+        double eps_milieu = epsilon(midPoint[k], r1, epsilon_a, epsilon_b);
+        // Contribution à la matrice (schéma standard 1D éléments finis)
+        double coeff = eps_milieu / h[k];
+
+        diagonal[k]     += coeff;
+        diagonal[k + 1] += coeff;
+        lower[k]        -= coeff;
+        upper[k]        -= coeff;
+        double rho_milieu = rho_epsilon(midPoint[k], r1, rho0, uniform_rho_case); // rho_lib
+        double b1 = (h[k] / (2.0)) * rho_milieu * midPoint[k];
+
+        rhs[k]     += b1;
+        rhs[k + 1] += b1;
     }    
 
     // TODO boundary condition at r=R (modify the lines below)
-    lower[lower.size() - 1]       = 0.0;
+    //lower[lower.size() - 1]       = 0.0;
     diagonal[diagonal.size() - 1] = 1.0;
-    rhs[rhs.size() - 1] = 0.0;
+    rhs[rhs.size() - 1] = VR;
 
 
     // Solve the system of equations
