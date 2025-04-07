@@ -143,7 +143,7 @@ main(int argc, char* argv[])
         // TODO build the vectors diagonal, lower, upper, rhs
         double eps_milieu = epsilon(midPoint[k], r1, epsilon_a, epsilon_b);
         // Contribution à la matrice (schéma standard 1D éléments finis)
-        double coeff = eps_milieu*midpoint[k] / (h[k]);
+        double coeff = eps_milieu*midPoint[k] / (h[k]);
 
         diagonal[k]     += coeff;
         diagonal[k + 1] += coeff;
@@ -153,7 +153,7 @@ main(int argc, char* argv[])
         double b1 = (h[k] / (2.0)) * rho_milieu * midPoint[k];
 
         rhs[k]     += b1;
-        rhs[k + 1] -= b1;
+        rhs[k + 1] += b1;
     }    
 
     // TODO boundary condition at r=R (modify the lines below)
