@@ -131,7 +131,7 @@ main(int argc, char* argv[])
     }
 
     // Construct the matrix and right-hand side
-    vector<double> diagonal(pointCount, 1.0);  // Diagonal
+    vector<double> diagonal(pointCount, 0.0);  // Diagonal
     vector<double> lower(pointCount - 1, 0.0); // Lower diagonal
     vector<double> upper(pointCount - 1, 0.0); // Upper diagonal
     vector<double> rhs(pointCount, 0.0);       // Right-hand-side
@@ -143,7 +143,7 @@ main(int argc, char* argv[])
         // TODO build the vectors diagonal, lower, upper, rhs
         double eps_milieu = epsilon(midPoint[k], r1, epsilon_a, epsilon_b);
         // Contribution à la matrice (schéma standard 1D éléments finis)
-        double coeff = eps_milieu / h[k];
+        double coeff = eps_milieu*midpoint[k] / (h[k]);
 
         diagonal[k]     += coeff;
         diagonal[k + 1] += coeff;
@@ -153,11 +153,11 @@ main(int argc, char* argv[])
         double b1 = (h[k] / (2.0)) * rho_milieu * midPoint[k];
 
         rhs[k]     += b1;
-        rhs[k + 1] += b1;
+        rhs[k + 1] -= b1;
     }    
 
     // TODO boundary condition at r=R (modify the lines below)
-    //lower[lower.size() - 1]       = 0.0;
+    lower[lower.size() - 1]       = 0.0;
     diagonal[diagonal.size() - 1] = 1.0;
     rhs[rhs.size() - 1] = VR;
 
@@ -166,12 +166,12 @@ main(int argc, char* argv[])
     vector<double> phi = solve(diagonal, lower, upper, rhs);
 
     // Calculate electric field E and displacement vector D
-    vector<double> E(pointCount - 1, 0);
-    vector<double> D(pointCount - 1, 0);
+    vector<double> E(pointCount - 1, 0.0);
+    vector<double> D(pointCount - 1, 0.0);
     for (int i = 0; i < E.size(); ++i) {
         // TODO calculate E and D
-        E[i] = 0.0;
-        D[i] = 0.0; 
+        E[i] = -(phi[i + 1] - phi[i]) / h[i];
+        D[i] = epsilon0*E[i]*epsilon(midPoint[i], r1, epsilon_a, epsilon_b); 
     }
 
     // Export data
