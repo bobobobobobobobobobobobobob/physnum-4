@@ -56,6 +56,7 @@ double rho_epsilon(const double& r,const double& r1,const double& rho0,const boo
     }
 }
 
+
 int
 main(int argc, char* argv[])
 {
@@ -122,6 +123,8 @@ main(int argc, char* argv[])
     // Arrays initialization
     vector<double> h(pointCount-1); 	// Distance between grid points
     vector<double> midPoint(pointCount-1);  // Midpoint of each grid element
+    
+    vector<double> rho_libre(pointCount-1,0.0); // nécessaire pour la c calcul de pho_libre 
         
     // TODO build the h vector and midpoint vector
     for (int i = 0; i < pointCount - 1; ++i) 
@@ -149,7 +152,10 @@ main(int argc, char* argv[])
         diagonal[k + 1] += coeff;
         lower[k]        -= coeff;
         upper[k]        -= coeff;
-        double rho_milieu = rho_epsilon(midPoint[k], r1, rho0, uniform_rho_case); // rho_lib
+        double rho_milieu = rho_epsilon(midPoint[k], r1, rho0, uniform_rho_case); // rho_lib/epsilon0
+
+        rho_libre[k]=rho_milieu*epsilon0;//pour la question c)
+
         double b1 = (h[k] / (2.0)) * rho_milieu * midPoint[k];
 
         rhs[k]     += b1;
@@ -174,6 +180,12 @@ main(int argc, char* argv[])
         D[i] = epsilon0*E[i]*epsilon(midPoint[i], r1, epsilon_a, epsilon_b); 
     }
 
+
+    vector<double> Div_D(pointCount-1,0.0);
+    for (int i = 0; i < Div_D.size(); ++i) {
+    Div_D[i] = (1.0 / midPoint[i]) * ((r[i+1] * D[i]) - (r[i] * D[i])) / h[i];
+    }
+   
     // Export data
     {
         // Electric potential phi
@@ -206,14 +218,13 @@ main(int argc, char* argv[])
         // Displacement field D
         ofstream ofs(fichier_D);
         ofs.precision(15);
-
-        if (E.size() != D.size())
-            throw std::runtime_error("error when writing displacement field: size of "
-                                     "D should be equal to E");
+        if (E.size() != D.size() || D.size() != rho_libre.size() || D.size() != Div_D.size())
+        throw std::runtime_error("error when writing displacement field: sizes of vectors do not match");
 
         for (int i = 0; i < D.size(); ++i) {
-            ofs << midPoint[i] << " " << D[i] << endl;
+            ofs << midPoint[i] << " " << D[i] << " " << rho_libre[i] << " " << Div_D[i] << endl;
         }
+        
     }
 
     return 0;
